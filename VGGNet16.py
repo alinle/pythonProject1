@@ -41,6 +41,7 @@ class VGG_net(nn.Module):
                                      kernel_size=(3,3),stride=(1,1), padding=(1,1)),
                            nn.BatchNorm2d(x),
                            nn.ReLU()]
+
                 in_channels = x
             elif x == 'M':
                 layers += [nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))]

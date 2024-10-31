@@ -1,4 +1,4 @@
-from ResNet import ResNet50
+from ResNet import ResNet18
 import os
 import shutil
 import torch
@@ -8,11 +8,11 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from Dataset import CustomDataset
 import matplotlib.pyplot as plt  # 그래프 생성을 위한 라이브러리 추가
+import time
 #SDF
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     batch_size = 8
-
     # 사이즈 변경 후 텐서로 변환
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
 
     # 모델을 GPU에서 돌리기 위한 코드
-    model = ResNet50(3,58).to(device)
+    model = ResNet18(3,58).to(device)
     # SGD, 학습률 0.1
     sgd = SGD(model.parameters(), lr=1e-1)
     # 손실함수 -> crossentropy 사용
@@ -46,10 +46,11 @@ if __name__ == '__main__':
     prev_acc = 0
     # 최대 정확도 기록
     highest_acc = 0.0
-    model_directory = 'VGGNet_models'  # 모델이 저장될 디렉토리
+    model_directory = 'models'  # 모델이 저장될 디렉토리
     accuracy_list = [] # test 정확도 저장용 리스트
 
     for I, current_epoch in enumerate(range(all_epoch)):
+        start_time = time.time()  # 시작 시간 기록
         model.train() # 모델 train 활성
         # 모델 훈련 과정
         for idx, (train_x, train_label) in enumerate(train_loader):
@@ -60,7 +61,6 @@ if __name__ == '__main__':
             sgd.zero_grad()
             # 모델에 입력을 전달한 후 예측값 계산
             predict_y = model(train_x)
-            print(torch.argmax(predict_y, dim=1))
             # 실제 라벨과 비교하여 손실값 계산
             loss = loss_fn(predict_y, train_label)
             loss.backward()
@@ -83,6 +83,12 @@ if __name__ == '__main__':
             all_correct_num += current_correct_num.item()  # 전체 정확한 예측 수에 추가
             all_sample_num += test_label.size(0)  # 전체 샘플 수 증가
 
+        # 시간 측정 코드
+        end_time = time.time()
+        epoch_duration = end_time - start_time
+        print(f"Epoch [{current_epoch + 1}/{all_epoch}], Duration: {epoch_duration:.2f} seconds")
+
+        # 정확도 측정 코드
         acc = all_correct_num / all_sample_num
         accuracy_list.append(acc)  # 정확도 리스트에 추가
         print(accuracy_list)

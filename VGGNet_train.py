@@ -9,10 +9,10 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from Dataset import CustomDataset
 import matplotlib.pyplot as plt  # 그래프 생성을 위한 라이브러리 추가
-#SDF
+import time
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    batch_size = 32
+    batch_size = 8
 
     # 사이즈 변경 후 텐서로 변환
     transform = transforms.Compose([
@@ -51,6 +51,7 @@ if __name__ == '__main__':
     accuracy_list = [] # test 정확도 저장용 리스트
 
     for I, current_epoch in enumerate(range(all_epoch)):
+        start_time = time.time()  # 시작 시간 기록
         model.train() # 모델 train 활성
         # 모델 훈련 과정
         for idx, (train_x, train_label) in enumerate(train_loader):
@@ -82,6 +83,12 @@ if __name__ == '__main__':
             all_correct_num += current_correct_num.item()  # 전체 정확한 예측 수에 추가
             all_sample_num += test_label.size(0)  # 전체 샘플 수 증가
 
+        # 시간 측정 코드
+        end_time = time.time()
+        epoch_duration = end_time - start_time
+        print(f"Epoch [{current_epoch + 1}/{all_epoch}], Duration: {epoch_duration:.2f} seconds")
+
+        # 정확도 측정 코드
         acc = all_correct_num / all_sample_num
         accuracy_list.append(acc)  # 정확도 리스트에 추가
         print(accuracy_list)
@@ -110,3 +117,17 @@ if __name__ == '__main__':
         prev_acc = acc
 
     print("Training finished")
+
+    # 정확도 그래프 시각화 및 저장
+    plt.plot(range(1, all_epoch + 1), accuracy_list, marker='o', color='b', label='Test Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.title('Epoch vs Accuracy')
+    plt.legend()
+    plt.grid(True)
+
+    # 모델 디렉토리에 그래프 이미지 저장
+    accuracy_plot_path = os.path.join(model_directory, 'accuracy_plot.png')
+    plt.savefig(accuracy_plot_path)  # 그래프 저장
+    print(f'Accuracy plot saved at {accuracy_plot_path}')
+    plt.show()

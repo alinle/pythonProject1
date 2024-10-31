@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt  # 그래프 생성을 위한 라이브러리 �
 #SDF
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    batch_size = 32
+    batch_size = 8
 
     # 사이즈 변경 후 텐서로 변환
     transform = transforms.Compose([
